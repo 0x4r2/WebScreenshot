@@ -15,6 +15,10 @@ Este script en Python se encarga de tomar capturas de pantalla de sitios web esp
 - Python 3.x
 - Bibliotecas Python como Selenium, Requests y Beautiful Soup para la automatización y el análisis web.
 
+```bash
+pip install -r requirements.txt
+```
+
 ## Uso:
 
 1. Configura la lista de sitios web que deseas supervisar en el script.
