@@ -10,12 +10,21 @@ import pandas as pd
 import requests
 from datetime import datetime
 import warnings
+import argparse
+
 
 ## nivel de alertas
 warnings.filterwarnings("ignore")
 
+parser = argparse.ArgumentParser(description="Sccreenshot de la url")
+parser.add_argument("-u", "--url", required=True, help="URL a capturar")
+
+args = parser.parse_args()
+URL = args.url
+
+
 # Variables personalizadas
-URL = ""   #Edit This
+#URL = ""   #Edit This
 WINDOW_SIZE = "1920,1080"
 #CHROME_DRIVER_PATH = '/usr/local/bin/chromedriver'  # Ajusta la ruta del controlador de Chrome según tu sistema
 ## descargar version actualizada del driver http://chromedriver.storage.googleapis.com/index.html?path=114.0.5735.90/
