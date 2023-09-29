@@ -33,7 +33,7 @@ python3 webscreen.py -f urls_file    #file with urls, one per line
 
 ## Resultados:
 
-![image](https://github.com/0x4r2/WebScreenshot/assets/6622069/3dcf0bdb-417e-4406-b2c3-0736bf7a308a)
+![image](img/a4742714c733fe13413996aafa699295.png)
 
 
 ## Tareas Pendientes (To-Do)
