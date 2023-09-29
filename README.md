@@ -31,10 +31,16 @@ python3 webscreen.py -u url          #simple url  https://example.com
 python3 webscreen.py -f urls_file    #file with urls, one per line
 ```
 
+## Resultados:
+
+![image](https://github.com/0x4r2/WebScreenshot/assets/6622069/3dcf0bdb-417e-4406-b2c3-0736bf7a308a)
+
+
 ## Tareas Pendientes (To-Do)
 
 - [x] Soporte Chrome.
 - [x] Compatible python3.x
 - [ ] Funciones multi url
 - [ ] Renombrar directorios
+
 
