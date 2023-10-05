@@ -40,7 +40,7 @@ python3 webscreen.py -f urls_file    #file with urls, one per line
 
 - [x] Soporte Chrome.
 - [x] Compatible python3.x
-- [ ] Funciones multi url
-- [ ] Renombrar directorios
+- [X] Funciones multi url
+- [X] Renombrar directorios
 
 

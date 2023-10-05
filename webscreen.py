@@ -11,105 +11,140 @@ import requests
 from datetime import datetime
 import warnings
 import argparse
+import string
+import random
+import sys
+
+def hide_warn():
+    ## nivel de alertas
+    warnings.filterwarnings("ignore")
+
+def get_screenshots(URL):
+    # Inicializar el controlador de Chrome
+    driver = webdriver.Chrome(options=chrome_options)
+    
+    # Obtener información de la página web
+    driver.get(URL)
+    titulo = driver.title
+    current_url = driver.current_url
+    image_path=''.join(random.choice(chars) for _ in range(15))
+    driver.save_screenshot(f"{output_dir}img/{image_path}.png")
+    driver.close()
+
+    # Realizar una solicitud GET para obtener información adicional
+    res = requests.get(current_url,verify=False)
+    status = res.status_code
+    headers = res.headers
+    code = res.text
+    formatted_headers = "<br>".join([f"{key}: {value}" for key, value in headers.items()])
+    filas = f'''
+    <tr>
+        <td>
+            <div style="display: inline-block; width: 300; word-wrap: break-word">
+                <br><b>Titulo:</b> {titulo}
+                <br><b>URL:</b><a href={current_url} target="_blank">{current_url} </a>
+                <br><b>Status Code:</b> {status}
+                <br>
+                <br><b>Headers:</b>{formatted_headers}
+                <br> 
+                <br>
+                <br><a href="{image_path}.txt" target="_blank">Source Code</a>
+                <br>
+            </div>
+        </td>
+        <td class="align-middle">
+            <div id="screenshot"><a href="img/{image_path}.png" target="_blank">
+            <img src="img/{image_path}.png" width="100%"></a></div>
+        </td>
+    </tr>''' 
+    # Guardar sourcecode
+    with open(os.path.join(output_dir, f"{image_path}.txt"), 'w') as f:
+        f.write(code)
+        f.close()
+
+    return filas
+
+def main():
+    
+    if isinstance(URL, str):
+        filas = get_screenshots(URL)
+        print(f"Procesando la url: {URL}")
+    elif isinstance(URL, list):
+        filas = ''
+        for url in URL:
+            data = get_screenshots(url)
+            filas += data
+            print(f"Procesando la url: {url}")
+
+    tabla = f'''<div style="width:90%;"><table border="1" class="table table-bordered text-wrap"><tr><th class="w-25 table-dark">Web Request Info</th><th class="w-75 table-dark">Web Screenshot</th></tr>{filas}</table></div>'''
 
 
-## nivel de alertas
-warnings.filterwarnings("ignore")
+    # Guardar el archivo HTML
+    datos = web_head + timestamp+ tabla + web_foot
+    base_nombre = "result"
+    count = 1
+    while True:
+        nombre_archivo = f"{base_nombre}{count}.html"
+        ruta_archivo = os.path.join(output_dir, nombre_archivo)
 
-parser = argparse.ArgumentParser(description="Sccreenshot de la url")
-parser.add_argument("-u", "--url", required=True, help="URL a capturar")
+        if not os.path.isfile(ruta_archivo):
+            with open(ruta_archivo, 'w') as f:
+                f.write(datos)
+                f.close()
+            break
+        count += 1
 
-args = parser.parse_args()
-URL = args.url
+    print(f"\nEscaneo y generación de informe completados. Los resultados se han guardado en el directorio: ./WebScreen/{nombre_archivo}")    
+    sys.exit()
 
+if __name__ == "__main__":
 
-# Variables personalizadas
-#URL = ""   #Edit This
-WINDOW_SIZE = "1920,1080"
-#CHROME_DRIVER_PATH = '/usr/local/bin/chromedriver'  # Ajusta la ruta del controlador de Chrome según tu sistema
-## descargar version actualizada del driver http://chromedriver.storage.googleapis.com/index.html?path=114.0.5735.90/
+    parser = argparse.ArgumentParser(description="Screenshot de una URL o una lista de URLs")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-u", "--url", help="URL a procesar")
+    group.add_argument("-f", "--file", help="Archivo que contiene una lista de URLs")
+    args = parser.parse_args()
 
-current_datetime = datetime.now()
-formatted_datetime = current_datetime.strftime("%Y/%m/%d at %H:%M:%S")
+    if args.url:
+        URL = args.url 
+    elif args.file:
+        try:
+            with open(args.file, "r") as file:
+                URL = file.read().splitlines()
+        except FileNotFoundError:
+            print("Error. El archivo no existe.")
+            sys.exit()
+    else:
+        print("Debes proporcionar una URL con -u o una lista de URLs desde un archivo con -f.")
+        sys.exit()
 
-# Configuración de directorios
-localpath = sp.getoutput('pwd')
-output_dir = "WebScreen/"
-os.makedirs(output_dir, exist_ok=True)
-img_dir = os.path.join(localpath, output_dir, "img")
-os.makedirs(img_dir, exist_ok=True)
+    print("WebScreenshotReport v1.1 - 0x4r2\n")
+    # Variables personalizadas
+    WINDOW_SIZE = "1920,1080"
+    #CHROME_DRIVER_PATH = '/usr/local/bin/chromedriver'  # Ajusta la ruta del controlador de Chrome según tu sistema
+    ## descargar version actualizada del driver http://chromedriver.storage.googleapis.com/index.html?path=114.0.5735.90/
 
+    current_datetime = datetime.now()
+    formatted_datetime = current_datetime.strftime("%Y/%m/%d at %H:%M:%S")
+    chars=string.digits+string.ascii_lowercase
+    hide_warn()
 
-# Configuración de opciones de Chrome
-chrome_options = Options()
-chrome_options.add_argument("--headless")
-chrome_options.add_argument("--window-size=%s" % WINDOW_SIZE)
-chrome_options.add_argument('--no-sandbox')
+    # Configuración de directorios
+    localpath = sp.getoutput('pwd')
+    output_dir = "WebScreen/"
+    os.makedirs(output_dir, exist_ok=True)
+    img_dir = os.path.join(localpath, output_dir, "img")
+    os.makedirs(img_dir, exist_ok=True)
 
-# Inicializar el controlador de Chrome
-driver = webdriver.Chrome(options=chrome_options)
-driver.get(URL)
+    # Configuración de opciones de Chromium
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--window-size=%s" % WINDOW_SIZE)
+    chrome_options.add_argument('--no-sandbox')
 
-# Obtener información de la página web
-titulo = driver.title
-current_url = driver.current_url
-driver.save_screenshot("WebScreen/img/web.png")
-driver.close()
+    # Crear el formato HTML del informe
+    web_head = '''<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous"><title>WebScreenshotReport</title></head><body><center><h2>Screenshots</h2>'''
+    web_foot = '<p>Powered by 4r2-webscreenshot-2023®</p</center></body></html>'
+    timestamp = f'<p>Report Generated on {formatted_datetime}</p>' 
 
-# Realizar una solicitud web para obtener información adicional
-res = requests.get(current_url,verify=False)
-status = res.status_code
-headers = res.headers
-code = res.text
-formatted_headers = "<br>".join([f"{key}: {value}" for key, value in headers.items()])
-
-
-# Crear el formato HTML del informe
-web_head = '''<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-  <title>WebScreenshotReport</title></head><body><center><h2>Screenshots</h2>'''
-
-web_foot = '</table></div><p>Powered by 4r2-webscreenshot-2023®</p</center></body></html>'
-
-timestamp = f'<p>Report Generated on {formatted_datetime}</p>' 
-
-tablas = f'''
-<div style="width:90%;">
-<table border="1" class="table table-bordered text-wrap">
-<tr >
-    <th class="w-25 table-dark">Web Request Info</th>
-    <th class="w-75 table-dark">Web Screenshot</th>
-</tr>
-<tr>
-    <td>
-        <div style="display: inline-block; width: 300; word-wrap: break-word">
-            <br><b>Titulo:</b> {titulo}
-            <br><b>URL:</b><a href={current_url} target="_blank">{current_url} </a>
-            <br><b>Status Code:</b> {status}
-            <br>
-            <br><b>Headers:</b>{formatted_headers}
-            <br> 
-            <br>
-            <br><a href="web.txt" target="_blank">Source Code</a>
-            <br>
-        </div>
-    </td>
-    <td class="align-middle">
-        <div id="screenshot"><a href="img/web.png" target="_blank">
-        <img src="img/web.png" width="100%"></a></div>
-    </td>
-</tr>''' 
-
-# Guardar el archivo HTML
-datos = web_head + timestamp+ tablas + web_foot
-with open(os.path.join(output_dir, "result.html"), 'w') as f:
-    f.write(datos)
-    f.close()
-
-# Guardar sourcecode
-with open(os.path.join(output_dir, "web.txt"), 'w') as f:
-    f.write(code)
-    f.close()
-
-print("Escaneo y generación de informe completados. Los resultados se han guardado en el directorio 'WebScreen'.")
+    main()
