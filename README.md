@@ -43,7 +43,7 @@ python3 webscreen.py -f urls_file    #file with urls, one per line
 - [x] Compatible python3.x
 - [X] Funciones multi url
 - [X] Renombrar directorios
-- [x] Custom Size Web 
-- [] Manejo de errores
+- [x] Custom Size Web
+- [ ] Manejo de errores
 
 

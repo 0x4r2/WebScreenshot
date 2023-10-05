@@ -36,7 +36,7 @@ def get_size(size_web):
 
 def get_screenshots(URL):
     # Inicializar el controlador de Chrome
-    driver = webdriver.Chrome(options=chrome_options)
+    driver = webdriver.Chrome(service=service,options=chrome_options)
     
     ## Size Personalizado
     #altura_pagina = driver.execute_script("return document.body.scrollHeight")
@@ -168,6 +168,9 @@ if __name__ == "__main__":
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--ignore-ssl-errors=true')
     chrome_options.add_argument('--ignore-certificate-errors')
+    driver="/usr/local/bin/chromedriver"
+    service = webdriver.ChromeService(executable_path=driver)
+
 
     # Crear el formato HTML del informe
     web_head = '''<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous"><title>WebScreenshotReport</title></head><body><center><h2>Screenshots</h2>'''
