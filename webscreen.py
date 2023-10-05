@@ -3,8 +3,7 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-import os
-import json
+import os, re , sys ,json
 import subprocess as sp
 import pandas as pd
 import requests
@@ -13,16 +12,36 @@ import warnings
 import argparse
 import string
 import random
-import sys
+
 
 def hide_warn():
     ## nivel de alertas
     warnings.filterwarnings("ignore")
 
+def get_emails(webtext):
+    patron = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
+    lista = re.findall(patron, webtext)
+    emails = ''
+    for email in lista:
+        emails += email + '\n'
+    return emails
+
+def get_size(size_web):
+    if size_web is None:
+        return "1280,720"
+    size_web = size_web.lower()
+    if 'x' in size_web:
+        return size_web.replace('x', ',')
+    return  "1280,720"  #"1920,1080"
+
 def get_screenshots(URL):
     # Inicializar el controlador de Chrome
     driver = webdriver.Chrome(options=chrome_options)
     
+    ## Size Personalizado
+    #altura_pagina = driver.execute_script("return document.body.scrollHeight")
+    #driver.set_window_size(1080, altura_pagina)
+
     # Obtener información de la página web
     driver.get(URL)
     titulo = driver.title
@@ -36,14 +55,16 @@ def get_screenshots(URL):
     status = res.status_code
     headers = res.headers
     code = res.text
+    email_list = get_emails(code)
     formatted_headers = "<br>".join([f"{key}: {value}" for key, value in headers.items()])
     filas = f'''
     <tr>
         <td>
             <div style="display: inline-block; width: 300; word-wrap: break-word">
                 <br><b>Titulo:</b> {titulo}
-                <br><b>URL:</b><a href={current_url} target="_blank">{current_url} </a>
+                <br><b>URL: </b><a href={current_url} target="_blank"> {current_url} </a>
                 <br><b>Status Code:</b> {status}
+                <br><b>Emails Found:</b> {email_list}
                 <br>
                 <br><b>Headers:</b>{formatted_headers}
                 <br> 
@@ -99,10 +120,12 @@ def main():
 
 if __name__ == "__main__":
 
+    print("WebScreenshotReport v1.1 - 0x4r2\n")
     parser = argparse.ArgumentParser(description="Screenshot de una URL o una lista de URLs")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-u", "--url", help="URL a procesar")
     group.add_argument("-f", "--file", help="Archivo que contiene una lista de URLs")
+    parser.add_argument("-s", "--size", help="(opcional) Tamaño  para la captura de pantalla ejm: 1920x1080")
     args = parser.parse_args()
 
     if args.url:
@@ -118,9 +141,11 @@ if __name__ == "__main__":
         print("Debes proporcionar una URL con -u o una lista de URLs desde un archivo con -f.")
         sys.exit()
 
-    print("WebScreenshotReport v1.1 - 0x4r2\n")
+    
     # Variables personalizadas
-    WINDOW_SIZE = "1920,1080"
+    size_web = args.size if args.size else None
+    WINDOW_SIZE = get_size(size_web)
+    print(f"Resolución Seleccionada: {WINDOW_SIZE}")
     #CHROME_DRIVER_PATH = '/usr/local/bin/chromedriver'  # Ajusta la ruta del controlador de Chrome según tu sistema
     ## descargar version actualizada del driver http://chromedriver.storage.googleapis.com/index.html?path=114.0.5735.90/
 
@@ -141,6 +166,8 @@ if __name__ == "__main__":
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--window-size=%s" % WINDOW_SIZE)
     chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--ignore-ssl-errors=true')
+    chrome_options.add_argument('--ignore-certificate-errors')
 
     # Crear el formato HTML del informe
     web_head = '''<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous"><title>WebScreenshotReport</title></head><body><center><h2>Screenshots</h2>'''
