@@ -16,7 +16,8 @@ Este script en Python se encarga de tomar capturas de pantalla de sitios web esp
 - Bibliotecas Python como Selenium, Requests y Beautiful Soup para la automatización y el análisis web.
 
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
+bash install_chrome_driver.sh
 ```
 
 ## Uso:
@@ -42,7 +43,7 @@ python3 webscreen.py -f urls_file    #file with urls, one per line
 - [x] Compatible python3.x
 - [X] Funciones multi url
 - [X] Renombrar directorios
-- [] Custom Size Web 
+- [x] Custom Size Web 
 - [] Manejo de errores
 
 
